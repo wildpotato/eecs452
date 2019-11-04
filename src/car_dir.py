@@ -12,12 +12,12 @@ def Map(x, in_min, in_max, out_min, out_max):
 
 def setup(busnum=None):
 	global leftPWM, rightPWM, homePWM, pwm, max_angle, curPWM, turn_overshot
-	leftPWM = 140
-	homePWM = 260
-	rightPWM = 380
+	leftPWM = 220
+	homePWM = 325
+	rightPWM = 430
 	curPWM = homePWM
 	turn_overshot = 10
-	max_angle = 44
+	max_angle = 45
 	offset =0
 	try:
 		for line in open('config'):
@@ -56,7 +56,7 @@ def turn_right():
 # ==========================================================================================
 
 def turn(angle):
-	global curPWM
+	global curPWM, leftPWM, rightPWM, max_angle
 	angle = Map(angle, -max_angle, max_angle, leftPWM, rightPWM)
 	pwm.write(0, 0, angle)
 	curPWM = angle
@@ -64,7 +64,7 @@ def turn(angle):
 def home():
 	global homePWM, curPWM, turn_overshot
 	if curPWM>homePWM:
-		pwm.write(0, 0, homePWM-turn_overshot) # add overshot
+		pwm.write(0, 0, homePWM)
 	elif curPWM<homePWM:
 		pwm.write(0, 0, homePWM+turn_overshot) # add overshot
 	else:
