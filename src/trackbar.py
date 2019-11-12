@@ -1,70 +1,61 @@
 import cv2
+import numpy as np
 
-max_value = 255
-max_value_H = 179
-low_H = 0
-low_S = 0
-low_V = 0
-high_H = max_value_H
-high_S = max_value
-high_V = max_value
-window_parameters_name = 'Parameter Adjustment'
-low_H_name = 'Low H'
-low_S_name = 'Low S'
-low_V_name = 'Low V'
-high_H_name = 'High H'
-high_S_name = 'High S'
-high_V_name = 'High V'
+class Trackbar():
+    def __init__(self):
+        self.lo_bound = [0,0,0]
+        self.hi_bound = [179,255,255]
+        self.lo_val = [41,20,0]
+        self.hi_val = [72,255,180]
+        self.window_name = 'Parameter Adjustment'
+        self.low_H = 'Low H'
+        self.low_S = 'Low S'
+        self.low_V = 'Low V'
+        self.high_H = 'High H'
+        self.high_S = 'High S'
+        self.high_V = 'High V'
+        cv2.namedWindow(self.window_name)
+        cv2.createTrackbar(self.low_H, self.window_name, self.lo_bound[0], self.hi_bound[0], self.on_low_H)
+        cv2.createTrackbar(self.high_H, self.window_name, self.lo_bound[0], self.hi_bound[0], self.on_high_H)
+        cv2.createTrackbar(self.low_S, self.window_name, self.lo_bound[1], self.hi_bound[1], self.on_low_S)
+        cv2.createTrackbar(self.high_S, self.window_name, self.lo_bound[1], self.hi_bound[1], self.on_high_S)
+        cv2.createTrackbar(self.low_V, self.window_name, self.lo_bound[2], self.hi_bound[2], self.on_low_V)
+        cv2.createTrackbar(self.high_V, self.window_name, self.lo_bound[2], self.hi_bound[2], self.on_high_V)
 
-low_H=36
-low_S=8
-low_V=73
-high_H=108
-high_S=135
-high_V=229
+    def __del__(self):
+        cv2.destroyWindow(self.window_name)
 
-def on_low_H_thresh_trackbar(val):
-    global low_H
-    global high_H
-    low_H = val
-    low_H = min(high_H-1, low_H)
-    cv2.setTrackbarPos(low_H_name, window_parameters_name, low_H)
-def on_high_H_thresh_trackbar(val):
-    global low_H
-    global high_H
-    high_H = val
-    high_H = max(high_H, low_H+1)
-    cv2.setTrackbarPos(high_H_name, window_parameters_name, high_H)
-def on_low_S_thresh_trackbar(val):
-    global low_S
-    global high_S
-    low_S = val
-    low_S = min(high_S-1, low_S)
-    cv2.setTrackbarPos(low_S_name, window_parameters_name, low_S)
-def on_high_S_thresh_trackbar(val):
-    global low_S
-    global high_S
-    high_S = val
-    high_S = max(high_S, low_S+1)
-    cv2.setTrackbarPos(high_S_name, window_parameters_name, high_S)
-def on_low_V_thresh_trackbar(val):
-    global low_V
-    global high_V
-    low_V = val
-    low_V = min(high_V-1, low_V)
-    cv2.setTrackbarPos(low_V_name, window_parameters_name, low_V)
-def on_high_V_thresh_trackbar(val):
-    global low_V
-    global high_V
-    high_V = val
-    high_V = max(high_V, low_V+1)
-    cv2.setTrackbarPos(high_V_name, window_parameters_name, high_V)
+    def on_low_H(self,val):
+        self.lo_val[0] = val
+        self.lo_val[0] = min(self.hi_val[0]-1, self.lo_val[0])
+        cv2.setTrackbarPos(self.low_H, self.window_name, self.lo_val[0])
+    def on_high_H(self,val):
+        self.hi_val[0] = val
+        self.hi_val[0] = max(self.hi_val[0], self.lo_val[0]+1)
+        cv2.setTrackbarPos(self.high_H, self.window_name, self.hi_val[0])
+    def on_low_S(self,val):
+        self.lo_val[1] = val
+        self.lo_val[1] = min(self.hi_val[1]-1, self.lo_val[1])
+        cv2.setTrackbarPos(self.low_S, self.window_name, self.lo_val[1])
+    def on_high_S(self,val):
+        self.hi_val[1] = val
+        self.hi_val[1] = max(self.hi_val[1], self.lo_val[1]+1)
+        cv2.setTrackbarPos(self.high_S, self.window_name, self.hi_val[1])
+    def on_low_V(self,val):
+        self.lo_val[2] = val
+        self.lo_val[2] = min(self.hi_val[2]-1, self.lo_val[2])
+        cv2.setTrackbarPos(self.low_V, self.window_name, self.lo_val[2])
+    def on_high_V(self,val):
+        self.hi_val[2] = val
+        self.hi_val[2] = max(self.hi_val[2], self.lo_val[2]+1)
+        cv2.setTrackbarPos(self.high_V, self.window_name, self.hi_val[2])
 
-def setup():
-    cv2.namedWindow(window_parameters_name)
-    cv2.createTrackbar(low_H_name, window_parameters_name, low_H, max_value_H, on_low_H_thresh_trackbar)
-    cv2.createTrackbar(high_H_name, window_parameters_name, high_H, max_value_H, on_high_H_thresh_trackbar)
-    cv2.createTrackbar(low_S_name, window_parameters_name, low_S, max_value, on_low_S_thresh_trackbar)
-    cv2.createTrackbar(high_S_name, window_parameters_name, high_S, max_value, on_high_S_thresh_trackbar)
-    cv2.createTrackbar(low_V_name, window_parameters_name, low_V, max_value, on_low_V_thresh_trackbar)
-    cv2.createTrackbar(high_V_name, window_parameters_name, high_V, max_value, on_high_V_thresh_trackbar)
+
+if __name__ == '__main__':
+    img = np.zeros((300,512,3), np.uint8)
+    tune = Trackbar()
+    while(1):
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            del tune
+            exit()
