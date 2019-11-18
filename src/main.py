@@ -5,18 +5,21 @@ import cv2
 import time
 from matplotlib import pyplot as plt
 import detectUtils
-import controlUtils as Car
+from detectParking import *
 
-# True if car is connected, false for prototyping
-car_ON = False
 
+# True if car is connected, false for algorithm prototyping
+LANE_KEEPING_ON = True
+CAR_ON = True
+SEARCH_PARKING_ON = False
 
 #####################
 ### INITIALIZTION ###
 #####################
 # Control
-if car_ON:
-    Car.setup()
+if CAR_ON:
+    import controlUtils
+    car = controlUtils.Car()
 # Camera
 camera = PiCamera()
 camera.resolution = (640, 480)
@@ -30,44 +33,57 @@ time.sleep(0.1)
 def keyboard_operation():
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
-        if car_ON:
-            Car.motor_stop()
-            Car.servo_home()
+        cv2.destroyAllWindows()
+        if CAR_ON:
+            car.motor_stop()
+            car.servo_home()
         exit()
-    # ~ elif key == ord("p"):
-        # ~ pid.Kp += 0.1
-        # ~ print("Kp: ",pid.Kp)
-    # ~ elif key == ord("l"):
-        # ~ pid.Kp -= 0.1
-        # ~ print("Kp: ",pid.Kp)
-    # ~ elif key == ord("i"):
-        # ~ pid.Ki += 0.01
-        # ~ print("Kp: ",pid.Ki)
-    # ~ elif key == ord("j"):
-        # ~ pid.Ki -= 0.01
-        # ~ print("Kp: ",pid.Ki)
-    # ~ elif key == ord("t"):
-        # ~ pid.Kd += 0.01
-        # ~ print("Kp: ",pid.Kd)
-    # ~ elif key == ord("g"):
-        # ~ pid.Kd -= 0.01
-        # ~ print("Kp: ",pid.Kd)
+    if CAR_ON:
+        if key == ord("a"):
+            car.Kp += 0.1
+            print("Kp: ",car.Kp)
+        elif key == ord("s"):
+            car.Kp -= 0.1
+            print("Kp: ",car.Kp)
+        elif key == ord("g"):
+            car.Ki += 0.01
+            print("Ki: ",car.Ki)
+        elif key == ord("h"):
+            car.Ki -= 0.01
+            print("Ki: ",car.Ki)
+        elif key == ord("k"):
+            car.Kd += 0.005
+            print("Kd: ",car.Kd)
+        elif key == ord("l"):
+            car.Kd -= 0.005
+            print("Kd: ",car.Kd)
 
 def main():
+    global LANE_KEEPING_ON
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         image = frame.array
-        #image = cv2.flip(image,0)
+        image = cv2.flip(image,-1)
 
-        lanes = detectUtils.detect_lanes(image)
-        lanes_image = detectUtils.display_lanes(image, lanes)
-        steering_angle = detectUtils.compute_steering_angle(image, lanes)
-        lanes_image = detectUtils.display_heading_line(lanes_image, steering_angle)
-        print("Steering Angle:",steering_angle)
-        cv2.imshow("Lanes", lanes_image)
+        if LANE_KEEPING_ON:
+            lanes = detectUtils.detect_lanes(image)
+            if lanes is None:
+                LANE_KEEPING_ON = False
+            lanes_image = detectUtils.display_lanes(image, lanes)
+            cur_angle = detectUtils.compute_current_angle(image, lanes)
+            lanes_image = detectUtils.display_heading_line(lanes_image, cur_angle)
+            print("Current angle:",cur_angle)
+            cv2.imshow("Lanes", lanes_image)
 
-        Car.motor_run()
-        Car.servo_turn(steering_angle)
+        if CAR_ON:
+            # ~ car.tune_pid()
+            car.lane_info(lanes)
+            car.motor_run()
+            car.servo_turn(cur_angle)
 
+        if SEARCH_PARKING_ON:
+            cv2.imshow("before parking",image)
+            park = DetectParking(image)
+            park.run()
 
         keyboard_operation()
         rawCapture.truncate(0)
@@ -76,8 +92,8 @@ def calibrate():
     tune = detectUtils.Trackbar()
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         image = frame.array
-        #image = cv2.flip(image,0)
-        detectUtils.tune_color_mask(image,'green',tune)
+        image = cv2.flip(image,-1)
+        detectUtils.tune_color_mask(image,'blue',tune)
 
         keyboard_operation()
         rawCapture.truncate(0)

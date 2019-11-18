@@ -13,7 +13,7 @@ Motor1_A = 13  # pin13
 Motor1_B = 15  # pin15
 
 # ===========================================================================
-# Set channel 4 and 5 of the servo driver IC to generate PWM, thus 
+# Set channel 4 and 5 of the servo driver IC to generate PWM, thus
 # controlling the speed of the car
 # ===========================================================================
 EN_M0    = 4  # servo driver IC CH4
@@ -65,7 +65,7 @@ def setup(busnum=None):
 		GPIO.setup(pin, GPIO.OUT)   # Set all pins' mode as output
 
 # ===========================================================================
-# Control the DC motor to make it rotate clockwise, so the car will 
+# Control the DC motor to make it rotate clockwise, so the car will
 # move forward.
 # ===========================================================================
 
@@ -77,7 +77,7 @@ def motor0(x):
 		GPIO.output(Motor0_A, GPIO.HIGH)
 		GPIO.output(Motor0_B, GPIO.LOW)
 	else:
-		print 'Config Error'
+		print('Config Error')
 
 def motor1(x):
 	if x == 'True':
@@ -110,8 +110,8 @@ def stop():
 		GPIO.output(pin, GPIO.LOW)
 
 # ===========================================================================
-# The first parameter(status) is to control the state of the car, to make it 
-# stop or run. The parameter(direction) is to control the car's direction 
+# The first parameter(status) is to control the state of the car, to make it
+# stop or run. The parameter(direction) is to control the car's direction
 # (move forward or backward).
 # ===========================================================================
 def ctrl(status, direction=1):
@@ -121,11 +121,11 @@ def ctrl(status, direction=1):
 		elif direction == -1:  # Backward
 			backward()
 		else:
-			print 'Argument error! direction must be 1 or -1.'
+			print('Argument error! direction must be 1 or -1.')
 	elif status == 0: # Stop
 		stop()
 	else:
-		print 'Argument error! status must be 0 or 1.'
+		print('Argument error! status must be 0 or 1.')
 
 def test():
 	while True:
@@ -140,7 +140,8 @@ def test():
 
 if __name__ == '__main__':
 	setup()
-	setSpeed(50)
-	#forward()
-	#backward()
+	forwardWithSpeed(35)
+	time.sleep(1)
+	backwardWithSpeed(35)
+	time.sleep(1)
 	stop()

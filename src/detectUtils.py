@@ -25,7 +25,7 @@ color_tape = {
 "orange": [26, 0, 237, 134, 110, 204],
 "pink": [176, 166, 150, 99, 219, 154],
 "red": [179, 168, 232, 134, 196, 103],
-"blue": [129, 86, 255, 133, 167, 78],
+"blue": [138, 86, 200, 115, 213, 118],
 "green": [72, 40, 255, 20, 180, 0],
 }
 
@@ -88,8 +88,8 @@ def make_points(height, width, line):
     y2 = int(y1 * 0.5)  # make points from middle of the frame down
 
     # bound the coordinates within the frame
-    x1 = max(-width, min(2 * width, int((y1 - intercept) / slope)))
-    x2 = max(-width, min(2 * width, int((y2 - intercept) / slope)))
+    x1 = max(-width, min(2 * width, int((y1 - intercept) / float(slope))))
+    x2 = max(-width, min(2 * width, int((y2 - intercept) / float(slope))))
     return [[x1, y1, x2, y2]]
 
 def combine_lines(height, width, line_segments):
@@ -149,9 +149,9 @@ def detect_lanes(frame):
     lane_lines = combine_lines(h,w,lines)
     return lane_lines
 
-def compute_steering_angle(frame, lane_lines):
+def compute_current_angle(frame, lane_lines):
     """
-    Find the steering angle based on lane line coordinate
+    Find the current angle based on lane line coordinate
     We assume that camera is calibrated to point to dead center
     """
     if len(lane_lines) == 0:
@@ -167,18 +167,16 @@ def compute_steering_angle(frame, lane_lines):
         _, _, left_x2, _ = lane_lines[0][0]
         _, _, right_x2, _ = lane_lines[1][0]
         camera_mid_offset_percent = 0.02 # 0.0 means car pointing to center, -0.03: car is centered to left, +0.03 means car pointing to right
-        mid = int(width / 2 * (1 + camera_mid_offset_percent))
+        mid = int(width / 2.0 * (1 + camera_mid_offset_percent))
         x_offset = (left_x2 + right_x2) / 2 - mid
 
-    # find the steering angle, which is angle between navigation direction to end of center line
     y_offset = int(height / 2)
-
     angle_to_mid_radian = math.atan(x_offset / y_offset)  # angle (in radian) to center vertical line
     angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi)  # angle (in degrees) to center vertical line
-    steering_angle = angle_to_mid_deg + 90 # this is the steering angle needed by picar front wheel
+    cur_angle = -angle_to_mid_deg + 90 # this is current angle of the front wheel
 
-    logging.debug('new steering angle: %s' % steering_angle)
-    return steering_angle
+    logging.debug('new current angle: %s' % cur_angle)
+    return cur_angle
 
 #########################
 ### display functions ###

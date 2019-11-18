@@ -7,8 +7,11 @@ def Map(x, in_min, in_max, out_min, out_max):
 		x=in_max
 	elif x<in_min:
 		x=in_min
-	mid = (out_min+out_max)/2
-	return mid + (out_max-mid) * x / in_max
+		
+	percent = (x - (in_min)) / (in_max - in_min)
+	return int(out_min + percent * (out_max - out_min))
+	#mid = (out_min+out_max)/2
+	#return int(mid + (out_max-mid) * x / in_max)
 
 def setup(busnum=None):
 	global leftPWM, rightPWM, homePWM, pwm, min_angle, max_angle, curPWM, turn_overshot
@@ -25,7 +28,7 @@ def setup(busnum=None):
 			if line[0:8] == 'offset =':
 				offset = int(line[9:-1])
 	except:
-		print 'config error'
+		print('config error')
 	leftPWM += offset
 	homePWM += offset
 	rightPWM += offset
@@ -61,6 +64,7 @@ def turn(angle):
 	angle = Map(angle, min_angle, max_angle, leftPWM, rightPWM)
 	pwm.write(0, 0, angle)
 	curPWM = angle
+	print("angle = ", angle)
 
 def home():
 	global homePWM, curPWM, turn_overshot
@@ -84,7 +88,14 @@ def test():
 		turn_right()
 		time.sleep(1)
 		home()
+		key = input("Press c to continue test.\nPress others to quit.")
+		if ord(key) == 99:
+			continue
+		else:
+			quit()
 
 if __name__ == '__main__':
+	# Servo test code 
 	setup()
 	home()
+	test()
