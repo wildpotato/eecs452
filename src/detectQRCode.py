@@ -1,23 +1,43 @@
-from PIL import Image
-import os
+"""
+Simple barcode detection module
+
+Required installs:
+    zbar (brew install zbar)
+    cv2
+"""
+
+from pyzbar import pyzbar
 import argparse
+import cv2
 
-def resize_images(directory, size):
-    for img in os.listdir(directory):
-        if img.endswith(".DS_Store"):
-            continue
-        im = Image.open(directory + img)
-        im_resized = im.resize(size, Image.ANTIALIAS)
-        im_resized.save(directory + img)
+class DetectQRCode:
+    def __init__(self, img):
+        self.img = img
 
-def getParser():
-    parser = argparse.ArgumentParser(description="")
-    parser.add_argument('-d', '--directory', type=str, required=True, help='Directory containing the images')
-    parser.add_argument('-s', '--size', type=int, nargs=2, required=True, metavar=('width', 'height'), help='Image size')
-    return parser
+    def get_barcode(self):
+        self.image = cv2.imread(self.img, cv2.IMREAD_COLOR)
+        cv2.imshow('image', self.image)
+        self.barcodes = pyzbar.decode(self.image)
+
+    def bound_barcode(self):
+        for barcode in self.barcodes:
+            (x, y, w, h) = barcode.rect
+            cv2.rectangle(self.image, (x,y), (x+w,y+h), (0, 0, 255), 2)
+        cv2.imshow("Barcode Image", self.image)
+
+    def run(self):
+        self.get_barcode()
+        self.bound_barcode()
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Barcode detector")
+    parser.add_argument("-i", "--image", required=True, help="path to input image")
+    return parser.parse_args()
 
 def main():
-    parser = getParser()
+    args = get_args()
+    code = DetectQRCode(args.image)
+    code.run()
 
 if __name__ == "__main__":
     main()
