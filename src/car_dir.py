@@ -7,11 +7,9 @@ def Map(x, in_min, in_max, out_min, out_max):
 		x=in_max
 	elif x<in_min:
 		x=in_min
-		
+
 	percent = (x - (in_min)) / (in_max - in_min)
 	return int(out_min + percent * (out_max - out_min))
-	#mid = (out_min+out_max)/2
-	#return int(mid + (out_max-mid) * x / in_max)
 
 def setup(busnum=None):
 	global leftPWM, rightPWM, homePWM, pwm, min_angle, max_angle, curPWM, turn_overshot
@@ -64,7 +62,6 @@ def turn(angle):
 	angle = Map(angle, min_angle, max_angle, leftPWM, rightPWM)
 	pwm.write(0, 0, angle)
 	curPWM = angle
-	print("angle = ", angle)
 
 def home():
 	global homePWM, curPWM, turn_overshot
@@ -95,7 +92,7 @@ def test():
 			quit()
 
 if __name__ == '__main__':
-	# Servo test code 
+	# Servo test code
 	setup()
 	home()
 	test()

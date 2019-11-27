@@ -1,18 +1,19 @@
 import car_dir
 import motor
 import math
-# from simple_pid import PID
-from PID_Controll import PID
+from simple_pid import PID
+
+CTRL_DEBUG = False
 
 class Car(object):
     def __init__(self):
-        self.origin = (160,600) #(x,y)
+        self.origin = (320,425) #(x,y)
         self.on_lane = False
-        self.detected_lanes = 0
-        self.Kp = 1
-        self.Ki = 0
-        self.Kd = 0
-        # self.pid = PID(self.Kp,self.Ki,self.Kd,setpoint=90)
+        self.off_lane_cnt = 0
+        # Working : 0.33 0.0295 0.12 | 0.33 0.292 0.12 
+        self.Kp = 0.33
+        self.Ki = 0.0292
+        self.Kd = 0.12
         self.pid = PID(self.Kp,self.Ki,self.Kd,setpoint=90)
         # self.pid.output_limits = (45,135)
         self.setup()
@@ -35,45 +36,58 @@ class Car(object):
     def servo_turn(self, cur_angle=-90):
         if cur_angle == -90:
             return
-        # steering_angle = int(self.pid(cur_angle))
-        steering_angle = int(self.pid.Compute(cur_angle))
-        print("after pid angle =", steering_angle)
+        if CTRL_DEBUG:
+                print("&Before PID angle =", cur_angle)
+        steering_angle = int(self.pid(cur_angle)) + 90
+        if CTRL_DEBUG:
+                print("$After PID angle =", steering_angle)
         car_dir.turn(steering_angle)
 
     def tune_pid(self):
         self.pid.Kp = self.Kp
         self.pid.Ki = self.Ki
         self.pid.Kd = self.Kd
-        #self.pid.tunings(self.Kp,self.Ki,self.Kd)
 
-    def lane_info(self, lanes):
-        if lanes is None:
-            self.on_lane = False
-            self.detected_lanes = 0
+    def check_stage1_status(self, lanes):
+        if lanes is None or len(lanes)==0:
+            if self.off_lane_cnt > 5: # no lane any more
+                self.on_lane = False
+                self.motor_stop()
+                self.servo_home()
+                return True
+            self.off_lane_cnt += 1
+            print("No line %d" %self.off_lane_cnt)
         else:
+            if len(lanes) == 1:
+                self.motor_run(40)
             self.on_lane = True
-            self.detected_lanes = len(lanes)
+            self.off_lane_cnt = 0
+            return False
 
     def parking(self, coordinate):
-        if coordinate[0] > self.origin[0]:
+        if coordinate[1] == -1:
             return False
-        x = coordinate[0]-self.origin[0]
-        y = coordinate[1]-self.origin[1]
-        # compute distance
-        dist = math.sqrt(x**2 + y**2)
-        # compute angle
-        angle = math.degrees(math.atan2(math.radians(y),math,radians(x))) + 90
+        angle = 90
+        # if coordinate[0] > self.origin[0]:
+        #     return False
+        # x = coordinate[0]-self.origin[0]
+        y = self.origin[1] - coordinate[1]
+        # # compute distance
+        # dist = math.sqrt(x**2 + y**2)
+        # # compute angle
+        # angle = math.degrees(math.atan2(math.radians(y),math,radians(x))) + 90
 
-        return self.navigate_to_spot(dist,angle)
+        return self.navigate_to_spot(y,angle)
 
     def navigate_to_spot(self, dist, angle):
         # reached parking spot
         if (dist < 3 and angle > 88 and angle < 92):
+            self.motor_stop()
             return True
         # if self.on_lane:
         #     return False
 
-        self.motor_run(30)
+        self.motor_run(25)
         self.servo_turn(angle)
         return False
 
